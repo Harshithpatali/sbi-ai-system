@@ -37,6 +37,15 @@ from automation.database import (
 )
 
 # =========================================
+# STREAMLIT SETTINGS
+# =========================================
+
+st.set_option(
+    'client.showErrorDetails',
+    False
+)
+
+# =========================================
 # PAGE CONFIG
 # =========================================
 
@@ -120,7 +129,15 @@ def load_stock_data():
         # FETCH STOCK DATA
         # =================================
 
-        fetch_stock_data()
+        stock_df = fetch_stock_data()
+
+        if stock_df is None:
+
+            st.error(
+                "Failed to fetch SBI stock data"
+            )
+
+            st.stop()
 
         # =================================
         # VERIFY RAW FILE
