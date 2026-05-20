@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import torch
 
@@ -144,14 +145,83 @@ def run_sentiment_pipeline():
         "Starting FinBERT sentiment analysis"
     )
 
+    # =====================================
+    # CHECK FILE EXISTS
+    # =====================================
+
+    if not os.path.exists(NEWS_PATH):
+
+        logger.warning(
+            "financial_news.csv not found"
+        )
+
+        return {
+
+            "overall_sentiment": "Neutral",
+
+            "sentiment_score": 0,
+
+            "total_articles": 0,
+
+            "details": []
+        }
+
+    # =====================================
+    # LOAD CSV
+    # =====================================
+
     df = pd.read_csv(NEWS_PATH)
+
+    # =====================================
+    # EMPTY FILE CHECK
+    # =====================================
+
+    if df.empty:
+
+        logger.warning(
+            "financial_news.csv is empty"
+        )
+
+        return {
+
+            "overall_sentiment": "Neutral",
+
+            "sentiment_score": 0,
+
+            "total_articles": 0,
+
+            "details": []
+        }
+
+    # =====================================
+    # VERIFY COLUMN
+    # =====================================
+
+    if "title" not in df.columns:
+
+        logger.warning(
+            "'title' column missing"
+        )
+
+        return {
+
+            "overall_sentiment": "Neutral",
+
+            "sentiment_score": 0,
+
+            "total_articles": 0,
+
+            "details": []
+        }
 
     # =====================================
     # REMOVE EMPTY HEADLINES
     # =====================================
 
     df.dropna(
+
         subset=["title"],
+
         inplace=True
     )
 
