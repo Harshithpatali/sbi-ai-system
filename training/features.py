@@ -337,14 +337,14 @@ def generate_features():
 
         df["TARGET"] = (
 
-            (
-                df["Close"].shift(-1)
-                - df["Close"]
-            )
+    (
+        df["Close"].shift(-1)
+        - df["Close"]
+    )
 
-            / df["Close"]
+    / df["Close"]
 
-        ) * 100
+) * 100
 
         # =========================================
         # REMOVE NaN VALUES

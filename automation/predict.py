@@ -124,6 +124,8 @@ def prepare_latest_sequence():
 
     # =====================================
     # TARGET
+    # TARGET NOW REPRESENTS:
+    # NEXT-DAY % RETURN
     # =====================================
 
     target = df[[TARGET_COLUMN]]
@@ -170,29 +172,21 @@ def prepare_latest_sequence():
 
 def calculate_confidence(
 
-    predicted_price,
-
-    current_price
+    predicted_return_percent
 ):
 
-    difference = abs(
-        predicted_price - current_price
-    )
-
-    percentage_change = (
-        difference / current_price
-    ) * 100
-
     confidence = max(
+
         50,
-        100 - percentage_change
+
+        100 - abs(predicted_return_percent)
     )
 
     return round(confidence, 2)
 
 
 # =========================================
-# PREDICT NEXT DAY PRICE
+# PREDICT NEXT DAY
 # =========================================
 
 def predict_next_day():
@@ -242,21 +236,29 @@ def predict_next_day():
     # =====================================
 
     prediction_array = (
+
         prediction
+
         .cpu()
+
         .numpy()
+
         .reshape(-1, 1)
     )
 
     # =====================================
     # INVERSE TRANSFORM
+    # PREDICTED % RETURN
     # =====================================
 
-    predicted_price = y_scaler.inverse_transform(
+    predicted_return_percent = (
 
-        prediction_array
+        y_scaler.inverse_transform(
 
-    )[0][0]
+            prediction_array
+
+        )[0][0]
+    )
 
     # =====================================
     # CURRENT PRICE
@@ -267,19 +269,19 @@ def predict_next_day():
     )
 
     # =====================================
-    # PREDICTED MOVEMENT
+    # COMPUTE FUTURE PRICE
     # =====================================
 
-    movement_percent = (
+    predicted_price = (
+
+        current_price *
 
         (
-            predicted_price -
-            current_price
+            1 +
+
+            predicted_return_percent / 100
         )
-
-        / current_price
-
-    ) * 100
+    )
 
     # =====================================
     # CONFIDENCE
@@ -287,10 +289,32 @@ def predict_next_day():
 
     confidence = calculate_confidence(
 
-        predicted_price,
-
-        current_price
+        predicted_return_percent
     )
+
+    # =====================================
+    # SIGNAL
+    # =====================================
+
+    if predicted_return_percent > 2:
+
+        signal = "STRONG BUY"
+
+    elif predicted_return_percent > 0:
+
+        signal = "BUY"
+
+    elif predicted_return_percent < -2:
+
+        signal = "STRONG SELL"
+
+    elif predicted_return_percent < 0:
+
+        signal = "SELL"
+
+    else:
+
+        signal = "HOLD"
 
     # =====================================
     # RESULTS
@@ -306,11 +330,17 @@ def predict_next_day():
             float(predicted_price), 2
         ),
 
-        "movement_percent": round(
-            float(movement_percent), 2
+        "predicted_return_percent": round(
+            float(predicted_return_percent), 2
         ),
 
-        "confidence": confidence
+        "movement_percent": round(
+            float(predicted_return_percent), 2
+        ),
+
+        "confidence": confidence,
+
+        "signal": signal
     }
 
     logger.info(
@@ -336,13 +366,18 @@ if __name__ == "__main__":
     )
 
     print(
+        f"Predicted Return: "
+        f"{results['predicted_return_percent']}%"
+    )
+
+    print(
         f"Predicted Price: "
         f"{results['predicted_price']}"
     )
 
     print(
-        f"Predicted Move: "
-        f"{results['movement_percent']}%"
+        f"Signal: "
+        f"{results['signal']}"
     )
 
     print(
