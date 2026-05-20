@@ -30,6 +30,10 @@ FEATURE_COLUMNS = [
     "Low",
     "Close",
     "Volume",
+    "CLOSE_LAG_1",
+"CLOSE_LAG_2",
+"CLOSE_LAG_3",
+"VOLUME_LAG_1",
 
     "RSI",
 

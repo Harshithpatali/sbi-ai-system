@@ -17,9 +17,6 @@ scipy
 streamlit
 plotly
 
-fastapi
-uvicorn
-
 supabase
 python-dotenv
 psycopg2-binary

@@ -183,6 +183,26 @@ def generate_features():
         )
 
         # =========================================
+        # LAG FEATURES
+        # =========================================
+
+        df["CLOSE_LAG_1"] = (
+            df["Close"].shift(1)
+        )
+
+        df["CLOSE_LAG_2"] = (
+            df["Close"].shift(2)
+        )
+
+        df["CLOSE_LAG_3"] = (
+            df["Close"].shift(3)
+        )
+
+        df["VOLUME_LAG_1"] = (
+            df["Volume"].shift(1)
+        )
+
+        # =========================================
         # HIGH-LOW SPREAD
         # =========================================
 
@@ -195,7 +215,20 @@ def generate_features():
         # Predict next-day close price
         # =========================================
 
-        df["TARGET"] = df["Close"].shift(-1)
+        # =========================================
+# NEXT DAY RETURN TARGET
+# =========================================
+
+        df["TARGET"] = (
+
+            (
+        df["Close"].shift(-1)
+        - df["Close"]
+            )
+
+                / df["Close"]
+
+            ) * 100
 
         # =========================================
         # REMOVE NaN VALUES

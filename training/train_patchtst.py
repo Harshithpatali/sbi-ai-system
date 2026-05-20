@@ -21,7 +21,6 @@ from utils.logger import logger
 # =========================================
 
 DEVICE = torch.device(
-
     "cuda" if torch.cuda.is_available()
     else "cpu"
 )
@@ -33,9 +32,9 @@ print(f"\nUsing Device: {DEVICE}\n")
 # TRAINING CONFIG
 # =========================================
 
-EPOCHS = 20
+EPOCHS = 50
 
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.0003
 
 MODEL_SAVE_PATH = (
     "models/saved_models/patchtst_sbi.pth"
@@ -79,11 +78,14 @@ def train_model():
     (
         train_loader,
         test_loader,
+
         scaler,
+
         X_train,
         X_test,
         y_train,
         y_test
+
     ) = load_data()
 
     # =====================================
@@ -238,8 +240,34 @@ def train_model():
 
     print(f"MAPE : {mape:.2f}%")
 
+    # =====================================
+    # DIRECTION ACCURACY
+    # =====================================
+
+    direction_actual = np.sign(
+        np.diff(actuals_list)
+    )
+
+    direction_pred = np.sign(
+        np.diff(predictions_list)
+    )
+
+    direction_accuracy = np.mean(
+
+        direction_actual ==
+        direction_pred
+
+    ) * 100
+
+    print(
+        f"Direction Accuracy: "
+        f"{direction_accuracy:.2f}%"
+    )
+
     logger.info(
-        f"MAE={mae}, RMSE={rmse}, MAPE={mape}"
+        f"MAE={mae}, RMSE={rmse}, "
+        f"MAPE={mape}, "
+        f"DirectionAccuracy={direction_accuracy}"
     )
 
     # =====================================
