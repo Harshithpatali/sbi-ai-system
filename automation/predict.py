@@ -37,6 +37,12 @@ FEATURE_COLUMNS = [
     "Close",
     "Volume",
 
+    "CLOSE_LAG_1",
+    "CLOSE_LAG_2",
+    "CLOSE_LAG_3",
+
+    "VOLUME_LAG_1",
+
     "RSI",
 
     "EMA_20",
