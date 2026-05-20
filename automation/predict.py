@@ -65,6 +65,8 @@ FEATURE_COLUMNS = [
     "HIGH_LOW_SPREAD"
 ]
 
+TARGET_COLUMN = "TARGET"
+
 
 # =========================================
 # DEVICE
@@ -121,7 +123,13 @@ def prepare_latest_sequence():
     features = df[FEATURE_COLUMNS]
 
     # =====================================
-    # NORMALIZATION
+    # TARGET
+    # =====================================
+
+    target = df[[TARGET_COLUMN]]
+
+    # =====================================
+    # FEATURE NORMALIZATION
     # =====================================
 
     scaler = StandardScaler()
@@ -129,6 +137,14 @@ def prepare_latest_sequence():
     scaled_features = scaler.fit_transform(
         features
     )
+
+    # =====================================
+    # TARGET NORMALIZATION
+    # =====================================
+
+    y_scaler = StandardScaler()
+
+    y_scaler.fit(target)
 
     # =====================================
     # LAST 60 DAYS
@@ -142,7 +158,9 @@ def prepare_latest_sequence():
 
         latest_sequence,
 
-        df
+        df,
+
+        y_scaler
     )
 
 
@@ -187,7 +205,7 @@ def predict_next_day():
     # PREPARE DATA
     # =====================================
 
-    latest_sequence, df = (
+    latest_sequence, df, y_scaler = (
         prepare_latest_sequence()
     )
 
@@ -219,13 +237,32 @@ def predict_next_day():
 
         prediction = model(input_tensor)
 
-    predicted_price = prediction.item()
+    # =====================================
+    # CONVERT TO NUMPY
+    # =====================================
+
+    prediction_array = (
+        prediction
+        .cpu()
+        .numpy()
+        .reshape(-1, 1)
+    )
+
+    # =====================================
+    # INVERSE TRANSFORM
+    # =====================================
+
+    predicted_price = y_scaler.inverse_transform(
+
+        prediction_array
+
+    )[0][0]
 
     # =====================================
     # CURRENT PRICE
     # =====================================
 
-    current_price = (
+    current_price = float(
         df["Close"].iloc[-1]
     )
 
@@ -266,11 +303,11 @@ def predict_next_day():
         ),
 
         "predicted_price": round(
-            predicted_price, 2
+            float(predicted_price), 2
         ),
 
         "movement_percent": round(
-            movement_percent, 2
+            float(movement_percent), 2
         ),
 
         "confidence": confidence

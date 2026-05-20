@@ -45,7 +45,11 @@ MODEL_SAVE_PATH = (
 # MAPE METRIC
 # =========================================
 
-def mean_absolute_percentage_error(
+# =========================================
+# SMAPE METRIC
+# =========================================
+
+def symmetric_mean_absolute_percentage_error(
     y_true,
     y_pred
 ):
@@ -54,11 +58,33 @@ def mean_absolute_percentage_error(
 
     y_pred = np.array(y_pred)
 
-    return np.mean(
-        np.abs(
-            (y_true - y_pred) / y_true
-        )
+    denominator = (
+
+        np.abs(y_true) +
+        np.abs(y_pred)
+
+    ) / 2
+
+    epsilon = 1e-10
+
+    denominator = np.where(
+
+        denominator == 0,
+
+        epsilon,
+
+        denominator
+    )
+
+    smape = np.mean(
+
+        np.abs(y_true - y_pred)
+
+        / denominator
+
     ) * 100
+
+    return smape
 
 
 # =========================================
@@ -225,7 +251,7 @@ def train_model():
         )
     )
 
-    mape = mean_absolute_percentage_error(
+    smape = symmetric_mean_absolute_percentage_error(
 
         actuals_list,
 
@@ -238,7 +264,7 @@ def train_model():
 
     print(f"RMSE : {rmse:.4f}")
 
-    print(f"MAPE : {mape:.2f}%")
+    print(f"SMAPE : {smape:.2f}%")
 
     # =====================================
     # DIRECTION ACCURACY
@@ -266,7 +292,7 @@ def train_model():
 
     logger.info(
         f"MAE={mae}, RMSE={rmse}, "
-        f"MAPE={mape}, "
+        f"SMAPE={smape}, "
         f"DirectionAccuracy={direction_accuracy}"
     )
 
