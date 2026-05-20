@@ -1,3 +1,20 @@
+import sys
+import os
+
+# =====================================
+# ADD PROJECT ROOT TO PYTHON PATH
+# =====================================
+
+project_root = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        ".."
+    )
+)
+
+sys.path.append(project_root)
+
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
