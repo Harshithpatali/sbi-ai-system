@@ -1,5 +1,6 @@
 import sys
 import os
+from pathlib import Path
 
 # =====================================
 # ADD PROJECT ROOT TO PYTHON PATH
@@ -14,10 +15,17 @@ project_root = os.path.abspath(
 
 sys.path.append(project_root)
 
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+
+from automation.fetch_stock import (
+    fetch_stock_data
+)
+
+from training.features import (
+    generate_features
+)
 
 from automation.signal_engine import (
     generate_signal
@@ -26,7 +34,6 @@ from automation.signal_engine import (
 from automation.database import (
     fetch_prediction_history
 )
-
 
 # =========================================
 # PAGE CONFIG
@@ -38,7 +45,6 @@ st.set_page_config(
 
     layout="wide"
 )
-
 
 # =========================================
 # TITLE
@@ -52,31 +58,99 @@ st.markdown(
 
 st.divider()
 
+# =========================================
+# FILE PATH
+# =========================================
+
+FEATURES_FILE = Path(
+    "data/processed/sbi_features.csv"
+)
 
 # =========================================
 # LOAD STOCK DATA
 # =========================================
 
-@st.cache_data
+@st.cache_data(ttl=3600)
 
 def load_stock_data():
 
-    df = pd.read_csv(
-        "data/processed/sbi_features.csv"
+    # =====================================
+    # FILE EXISTS
+    # =====================================
+
+    if FEATURES_FILE.exists():
+
+        df = pd.read_csv(
+            FEATURES_FILE
+        )
+
+        return df
+
+    # =====================================
+    # GENERATE DATA PIPELINE
+    # =====================================
+
+    st.warning(
+        "Feature file missing. "
+        "Generating data pipeline..."
     )
 
-    return df
+    try:
 
+        # =================================
+        # FETCH STOCK DATA
+        # =================================
+
+        fetch_stock_data()
+
+        # =================================
+        # GENERATE FEATURES
+        # =================================
+
+        generate_features()
+
+    except Exception as e:
+
+        st.error(
+            f"Pipeline generation failed: {e}"
+        )
+
+        st.stop()
+
+    # =====================================
+    # CHECK AGAIN
+    # =====================================
+
+    if FEATURES_FILE.exists():
+
+        df = pd.read_csv(
+            FEATURES_FILE
+        )
+
+        return df
+
+    # =====================================
+    # FAILURE
+    # =====================================
+
+    st.error(
+        "Could not generate "
+        "sbi_features.csv"
+    )
+
+    st.stop()
+
+# =========================================
+# LOAD DATAFRAME
+# =========================================
 
 df = load_stock_data()
-
 
 # =========================================
 # GENERATE SIGNALS
 # =========================================
 
 results = generate_signal()
-
 
 # =========================================
 # METRICS ROW
@@ -120,9 +194,7 @@ with col4:
         f"{results['confidence']}%"
     )
 
-
 st.divider()
-
 
 # =========================================
 # SIGNAL DISPLAY
@@ -160,7 +232,6 @@ else:
         f"⏸️ SIGNAL: {signal}"
     )
 
-
 # =========================================
 # SENTIMENT SECTION
 # =========================================
@@ -189,9 +260,7 @@ with sentiment_col2:
         results["sentiment_score"]
     )
 
-
 st.divider()
-
 
 # =========================================
 # CANDLESTICK CHART
@@ -234,7 +303,6 @@ st.plotly_chart(
     use_container_width=True
 )
 
-
 # =========================================
 # HISTORICAL PREDICTIONS
 # =========================================
@@ -263,7 +331,6 @@ else:
     st.warning(
         "No prediction history available"
     )
-
 
 # =========================================
 # PERFORMANCE ANALYTICS
@@ -296,7 +363,6 @@ with analytics_col2:
         f"{history_df['movement_percent'].mean():.2f}%"
         if history else "N/A"
     )
-
 
 # =========================================
 # FOOTER
