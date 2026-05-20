@@ -1,5 +1,6 @@
 import sys
 import os
+import traceback
 from pathlib import Path
 
 # =====================================
@@ -59,8 +60,12 @@ st.markdown(
 st.divider()
 
 # =========================================
-# FILE PATH
+# FILE PATHS
 # =========================================
+
+RAW_FILE = Path(
+    "data/raw/sbi_stock.csv"
+)
 
 FEATURES_FILE = Path(
     "data/processed/sbi_features.csv"
@@ -87,7 +92,7 @@ def load_stock_data():
         return df
 
     # =====================================
-    # GENERATE DATA PIPELINE
+    # GENERATE PIPELINE
     # =====================================
 
     st.warning(
@@ -98,10 +103,36 @@ def load_stock_data():
     try:
 
         # =================================
+        # CREATE DIRECTORIES
+        # =================================
+
+        os.makedirs(
+            "data/raw",
+            exist_ok=True
+        )
+
+        os.makedirs(
+            "data/processed",
+            exist_ok=True
+        )
+
+        # =================================
         # FETCH STOCK DATA
         # =================================
 
         fetch_stock_data()
+
+        # =================================
+        # VERIFY RAW FILE
+        # =================================
+
+        if not RAW_FILE.exists():
+
+            st.error(
+                "sbi_stock.csv was not created"
+            )
+
+            st.stop()
 
         # =================================
         # GENERATE FEATURES
@@ -112,13 +143,17 @@ def load_stock_data():
     except Exception as e:
 
         st.error(
-            f"Pipeline generation failed: {e}"
+            f"Pipeline generation failed:\n{e}"
+        )
+
+        st.code(
+            traceback.format_exc()
         )
 
         st.stop()
 
     # =====================================
-    # CHECK AGAIN
+    # VERIFY FEATURES FILE
     # =====================================
 
     if FEATURES_FILE.exists():
