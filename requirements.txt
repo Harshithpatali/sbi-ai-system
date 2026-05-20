@@ -3,7 +3,7 @@ numpy
 matplotlib
 scikit-learn
 yfinance
-pandas-ta
+ta
 
 torch
 torchvision
@@ -12,6 +12,7 @@ torchaudio
 transformers
 accelerate
 sentencepiece
+scipy
 
 streamlit
 plotly
@@ -26,6 +27,7 @@ psycopg2-binary
 requests
 python-telegram-bot
 
+newsapi-python
+
 tqdm
 joblib
-scipy
